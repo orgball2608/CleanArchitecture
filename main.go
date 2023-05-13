@@ -6,6 +6,7 @@ import (
 	"LearnGo/middleware"
 	"LearnGo/module/restaurant/transport/ginrestaurant"
 	"LearnGo/module/upload/uploadtransport/ginupload"
+	"LearnGo/module/user/usertransport/ginuser"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -51,6 +52,10 @@ func main() {
 	restaurants.GET("/:id", ginrestaurant.GetRestaurant(appContext))
 
 	restaurants.PATCH("/:id", ginrestaurant.UpdateRestaurant(appContext))
+
+	v1.POST("/register", ginuser.Register(appContext))
+	v1.POST("/authenticate", ginuser.Login(appContext))
+	v1.GET("/profile", middleware.RequireAuth(appContext), ginuser.GetProfile(appContext))
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 

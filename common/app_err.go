@@ -101,6 +101,10 @@ func ErrEntityNotFound(entity string, err error) *AppError {
 	)
 }
 
+func ErrRecordNotFound(err error) *AppError {
+	return NewCustomError(err, fmt.Sprintf("record not found"), fmt.Sprintf("RecordNotFound"))
+}
+
 func ErrNoPermission(err error) *AppError {
 	return NewCustomError(
 		err,
