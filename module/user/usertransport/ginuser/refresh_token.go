@@ -6,28 +6,22 @@ import (
 	"LearnGo/component/hasher"
 	"LearnGo/component/tokenprovider/jwt"
 	"LearnGo/module/user/userbusiness"
-	"LearnGo/module/user/usermodel"
 	"LearnGo/module/user/userstore"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func Login(appCtx appctx.AppContext) gin.HandlerFunc {
+func RefreshToken(appCtx appctx.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var loginUserData usermodel.UserLogin
-
-		if err := c.ShouldBind(&loginUserData); err != nil {
-			c.JSON(http.StatusBadRequest, common.ErrInvalidRequest(err))
-		}
-
+		data := c.MustGet(common.CurrentUser).(common.Requester)
 		db := appCtx.GetMainDBConnection()
 		tokenProvider := jwt.NewTokenJWTProvider(appCtx.GetSecretKey()) //appctx.SecretKey()
 
 		store := userstore.NewSQLStore(db)
 		md5 := hasher.NewMd5Hash()
 
-		biz := userbusiness.NewLoginBusiness(appCtx, store, 60*60*24*30, 60*30, tokenProvider, md5)
-		account, err := biz.Login(c.Request.Context(), &loginUserData)
+		biz := userbusiness.NewRefreshBusiness(appCtx, store, 30*60, tokenProvider, md5)
+		account, err := biz.Refresh(c.Request.Context(), data)
 
 		if err != nil {
 			panic(err)

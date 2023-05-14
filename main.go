@@ -55,6 +55,7 @@ func main() {
 
 	v1.POST("/register", ginuser.Register(appContext))
 	v1.POST("/authenticate", ginuser.Login(appContext))
+	v1.GET("/refresh", middleware.RequireAuth(appContext), ginuser.RefreshToken(appContext))
 	v1.GET("/profile", middleware.RequireAuth(appContext), ginuser.GetProfile(appContext))
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

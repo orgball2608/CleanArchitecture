@@ -12,32 +12,29 @@ type LoginStorage interface {
 	FindUser(ctx context.Context, conditions map[string]interface{}, moreInfo ...string) (*usermodel.User, error)
 }
 
-//type TokenConfig interface {
-//	GetAtExp() int
-//	GetRtExp() int
-//}
-
 type loginBusiness struct {
-	appCtx    appctx.AppContext
-	userStore LoginStorage
-	//tokenConfig   TokenConfig
-	expiry        int // expiry will replace for type TokenConfig
-	tokenProvider tokenprovider.Provider
-	hasher        Hasher
+	appCtx             appctx.AppContext
+	userStore          LoginStorage
+	accessTokenExpiry  int
+	refreshTokenExpiry int
+	tokenProvider      tokenprovider.Provider
+	hasher             Hasher
 }
 
 func NewLoginBusiness(appCtx appctx.AppContext,
 	userStore LoginStorage,
 	//tokenConfig TokenConfig,
-	expiry int,
+	accessTokenExpiry int,
+	refreshTokenExpiry int,
 	tokenProvider tokenprovider.Provider,
 	hasher Hasher) *loginBusiness {
 	return &loginBusiness{
-		appCtx:        appCtx,
-		userStore:     userStore,
-		expiry:        expiry,
-		tokenProvider: tokenProvider,
-		hasher:        hasher,
+		appCtx:             appCtx,
+		userStore:          userStore,
+		accessTokenExpiry:  accessTokenExpiry,
+		refreshTokenExpiry: refreshTokenExpiry,
+		tokenProvider:      tokenProvider,
+		hasher:             hasher,
 		//tokenConfig:   tokenConfig,
 	}
 }
@@ -48,7 +45,7 @@ func NewLoginBusiness(appCtx appctx.AppContext,
 // 3.1 Access token & Refresh token
 // 4. Return token(s)
 
-func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) (*usermodel.Account, error) {
+func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) (*usermodel.Token, error) {
 	user, err := biz.userStore.FindUser(ctx, map[string]interface{}{"email": data.Email})
 
 	if err != nil {
@@ -67,19 +64,19 @@ func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) 
 	}
 
 	//biz.tokenConfig.GetAtExp() ===> biz.expiry
-	accessToken, err := biz.tokenProvider.Generate(payload, biz.expiry)
+	accessToken, err := biz.tokenProvider.Generate(payload, biz.accessTokenExpiry)
 
 	if err != nil {
 		return nil, common.ErrInternal(err)
 	}
 
-	refreshToken, err := biz.tokenProvider.Generate(payload, biz.expiry)
+	refreshToken, err := biz.tokenProvider.Generate(payload, biz.refreshTokenExpiry)
 
 	if err != nil {
 		return nil, common.ErrInternal(err)
 	}
 
-	account := usermodel.NewAccount(accessToken, refreshToken)
+	account := usermodel.NewToken(accessToken, refreshToken)
 
 	return account, nil
 }

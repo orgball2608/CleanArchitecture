@@ -2,7 +2,6 @@ package usermodel
 
 import (
 	"LearnGo/common"
-	"LearnGo/component/tokenprovider"
 )
 
 const EntityName = "client"
@@ -68,16 +67,4 @@ type UserLogin struct {
 
 func (UserLogin) TableName() string {
 	return User{}.TableName()
-}
-
-type Account struct {
-	AccessToken  *tokenprovider.Token `json:"access_token"`
-	RefreshToken *tokenprovider.Token `json:"refresh_token""`
-}
-
-func NewAccount(at, rt *tokenprovider.Token) *Account {
-	return &Account{
-		AccessToken:  at,
-		RefreshToken: rt,
-	}
 }
