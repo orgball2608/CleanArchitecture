@@ -23,7 +23,6 @@ type loginBusiness struct {
 
 func NewLoginBusiness(appCtx appctx.AppContext,
 	userStore LoginStorage,
-	//tokenConfig TokenConfig,
 	accessTokenExpiry int,
 	refreshTokenExpiry int,
 	tokenProvider tokenprovider.Provider,
@@ -76,7 +75,7 @@ func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) 
 		return nil, common.ErrInternal(err)
 	}
 
-	account := usermodel.NewToken(accessToken, refreshToken)
+	token := usermodel.NewToken(accessToken, refreshToken)
 
-	return account, nil
+	return token, nil
 }

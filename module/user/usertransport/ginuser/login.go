@@ -21,12 +21,12 @@ func Login(appCtx appctx.AppContext) gin.HandlerFunc {
 		}
 
 		db := appCtx.GetMainDBConnection()
-		tokenProvider := jwt.NewTokenJWTProvider(appCtx.GetSecretKey()) //appctx.SecretKey()
+		tokenProvider := jwt.NewTokenJWTProvider(appCtx.GetSecretKey())
 
 		store := userstore.NewSQLStore(db)
 		md5 := hasher.NewMd5Hash()
 
-		biz := userbusiness.NewLoginBusiness(appCtx, store, 60*60*24*30, 60*30, tokenProvider, md5)
+		biz := userbusiness.NewLoginBusiness(appCtx, store, 60*30, 60*60*24*30, tokenProvider, md5)
 		account, err := biz.Login(c.Request.Context(), &loginUserData)
 
 		if err != nil {

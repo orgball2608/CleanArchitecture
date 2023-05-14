@@ -14,12 +14,12 @@ func NewToken(at, rt *tokenprovider.Token) *Token {
 	}
 }
 
-type RefreshTokenResponse struct {
-	RefreshToken *tokenprovider.Token `json:"refresh_token""`
+type AccessTokenResponse struct {
+	AccessToken *tokenprovider.Token `json:"access_token"`
 }
 
-func NewRefreshTokenResponse(at *tokenprovider.Token) *RefreshTokenResponse {
-	return &RefreshTokenResponse{
-		RefreshToken: at,
+func NewRefreshTokenResponse(at *tokenprovider.Token) *AccessTokenResponse {
+	return &AccessTokenResponse{
+		AccessToken: at,
 	}
 }

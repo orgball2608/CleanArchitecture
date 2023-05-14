@@ -12,34 +12,33 @@ type RefreshStorage interface {
 }
 
 type refreshBusiness struct {
-	appCtx             appctx.AppContext
-	userStore          LoginStorage
-	refreshTokenExpiry int // expiry will replace for type TokenConfig
-	tokenProvider      tokenprovider.Provider
-	hasher             Hasher
+	appCtx            appctx.AppContext
+	userStore         LoginStorage
+	accessTokenExpiry int // expiry will replace for type TokenConfig
+	tokenProvider     tokenprovider.Provider
+	hasher            Hasher
 }
 
 func NewRefreshBusiness(appCtx appctx.AppContext,
 	userStore LoginStorage,
-	refreshTokenExpiry int,
+	accessTokenExpiry int,
 	tokenProvider tokenprovider.Provider,
 	hasher Hasher) *refreshBusiness {
 	return &refreshBusiness{
-		appCtx:             appCtx,
-		userStore:          userStore,
-		refreshTokenExpiry: refreshTokenExpiry,
-		tokenProvider:      tokenProvider,
-		hasher:             hasher,
+		appCtx:            appCtx,
+		userStore:         userStore,
+		accessTokenExpiry: accessTokenExpiry,
+		tokenProvider:     tokenProvider,
+		hasher:            hasher,
 	}
 }
 
-// 1. Find user, email
-// 2. Hash pass from input & compare with pass in db
-// 3. Provider: issue JWT token for Client
-// 3.1 Access token & Refresh token
+// 1. Hash pass from input & compare with pass in db
+// 2. Provider: issue JWT token for Client
+// 3 Access token
 // 4. Return token(s)
 
-func (biz *refreshBusiness) Refresh(ctx context.Context, user interface{}) (*usermodel.RefreshTokenResponse, error) {
+func (biz *refreshBusiness) Refresh(ctx context.Context, user interface{}) (*usermodel.AccessTokenResponse, error) {
 
 	data, ok := user.(*usermodel.User)
 
@@ -52,13 +51,13 @@ func (biz *refreshBusiness) Refresh(ctx context.Context, user interface{}) (*use
 		Role:   data.GetUserRole(),
 	}
 
-	refreshToken, err := biz.tokenProvider.Generate(payload, biz.refreshTokenExpiry)
+	accessToken, err := biz.tokenProvider.Generate(payload, biz.accessTokenExpiry)
 
 	if err != nil {
 		return nil, common.ErrInternal(err)
 	}
 
-	account := usermodel.NewRefreshTokenResponse(refreshToken)
+	token := usermodel.NewRefreshTokenResponse(accessToken)
 
-	return account, nil
+	return token, nil
 }
