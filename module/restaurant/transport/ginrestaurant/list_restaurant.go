@@ -5,7 +5,9 @@ import (
 	"LearnGo/component/appctx"
 	restaurantbiz "LearnGo/module/restaurant/biz"
 	restaurantmodel "LearnGo/module/restaurant/model"
+	restaurantrepo "LearnGo/module/restaurant/repository"
 	restaurantstorage "LearnGo/module/restaurant/storage"
+	restaurantlikestorage "LearnGo/module/restaurantlike/storage"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -26,7 +28,9 @@ func ListRestaurant(appCtx appctx.AppContext) gin.HandlerFunc {
 		}
 
 		store := restaurantstorage.NewSQLStore(db)
-		biz := restaurantbiz.NewListRestaurantBiz(store)
+		likeStore := restaurantlikestorage.NewSQLStore(db)
+		repo := restaurantrepo.NewListRestaurantBiz(store, likeStore)
+		biz := restaurantbiz.NewListRestaurantBiz(repo)
 		pagingData.Fulfill()
 
 		filter.Status = 1

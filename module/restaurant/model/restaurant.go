@@ -10,6 +10,8 @@ var (
 	ErrNameCannotEmpty = errors.New("restaurant name cannot be blank")
 )
 
+const EntityName = "Restaurant"
+
 // Business Model
 // `common.SQLModel` is embed struct
 type Restaurant struct {
@@ -18,9 +20,9 @@ type Restaurant struct {
 	Addr            string             `json:"address" gorm:"column:addr;"`
 	Logo            *common.Image      `json:"logo" gorm:"column:logo;"`
 	Cover           *common.Images     `json:"cover" gorm:"column:cover;"`
-	LikedCount      int                `json:"liked_count" gorm:"column:liked_count;"` // computed field
 	UserId          int                `json:"-" gorm:"column:user_id"`
 	User            *common.SimpleUser `json:"user" gorm:"preload:false;"`
+	LikedCount      int                `json:"liked_count" gorm:"_"`
 }
 
 func (Restaurant) TableName() string {
