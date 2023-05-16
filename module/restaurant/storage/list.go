@@ -10,46 +10,42 @@ func (s *sqlStore) ListDataWithCondition(
 	ctx context.Context,
 	filter *restaurantmodel.Filter,
 	paging *common.Paging,
-	morekeys ...string,
+	moreKeys ...string,
 ) ([]restaurantmodel.Restaurant, error) {
 	var result []restaurantmodel.Restaurant
-	db := s.db.Table(restaurantmodel.Restaurant{}.TableName())
-	if f := filter; f != nil {
-		if f.OwnerId > 0 {
-			db = db.Where("owner_id = ?", f.OwnerId)
-		}
+	db := s.db
 
-		if len(f.Status) > 0 {
-			db = db.Where("status in (?)", f.Status)
+	db = db.Table(restaurantmodel.Restaurant{}.TableName())
+
+	if f := filter; f != nil {
+		if f.Status > 0 {
+			db = db.Where("status = ?", f.Status)
 		}
 	}
 
 	if err := db.Count(&paging.Total).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
+	}
+
+	for i := range moreKeys {
+		db = db.Preload(moreKeys[i])
 	}
 
 	if v := paging.FakeCursor; v != "" {
-		uid, err := common.FromBase58(paging.FakeCursor)
-		if err != nil {
-			return nil, common.ErrDB(err)
+		if uid, err := common.FromBase58(v); err == nil {
+			db = db.Where("id < ?", uid.GetLocalID())
 		}
-		db = db.Where("id < ?", uid.GetLocalID())
 	} else {
 		offset := (paging.Page - 1) * paging.Limit
-		db = db.Offset(offset)
+		db = db.Offset(int(offset))
+
 	}
 
 	if err := db.
-		Limit(paging.Limit).
+		Limit(int(paging.Limit)).
 		Order("id desc").
 		Find(&result).Error; err != nil {
-		return nil, err
-	}
-
-	if len(result) > 0 {
-		last := result[len(result)-1]
-		last.Mask(false)
-		paging.NextCursor = last.FakeId.String()
+		return nil, common.ErrDB(err)
 	}
 
 	return result, nil

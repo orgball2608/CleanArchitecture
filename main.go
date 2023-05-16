@@ -4,9 +4,9 @@ import (
 	"LearnGo/component/appctx"
 	"LearnGo/component/uploadprovider"
 	"LearnGo/middleware"
-	"LearnGo/module/restaurant/transport/ginrestaurant"
-	"LearnGo/module/upload/uploadtransport/ginupload"
-	"LearnGo/module/user/usertransport/ginuser"
+	"LearnGo/route/admin"
+	"LearnGo/route/client"
+	"LearnGo/route/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -37,26 +37,11 @@ func main() {
 
 	r.Use(middleware.Recover(appContext))
 
+	// route
 	v1 := r.Group("v1")
-
-	v1.POST("upload", ginupload.Upload(appContext))
-
-	restaurants := v1.Group("restaurants")
-
-	restaurants.POST("/", ginrestaurant.CreateRestaurant(appContext))
-
-	restaurants.DELETE("/:id", ginrestaurant.DeleteRestaurant(appContext))
-
-	restaurants.GET("/", ginrestaurant.ListRestaurant(appContext))
-
-	restaurants.GET("/:id", ginrestaurant.GetRestaurant(appContext))
-
-	restaurants.PATCH("/:id", ginrestaurant.UpdateRestaurant(appContext))
-
-	v1.POST("/register", ginuser.Register(appContext))
-	v1.POST("/authenticate", ginuser.Login(appContext))
-	v1.GET("/refresh", middleware.RequireAuth(appContext), ginuser.RefreshToken(appContext))
-	v1.GET("/profile", middleware.RequireAuth(appContext), ginuser.GetProfile(appContext))
+	admin.AdminRoute(appContext, v1)
+	client.ClientRoute(appContext, v1)
+	user.UserRoute(appContext, v1)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 

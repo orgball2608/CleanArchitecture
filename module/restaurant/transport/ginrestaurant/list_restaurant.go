@@ -12,6 +12,7 @@ import (
 
 func ListRestaurant(appCtx appctx.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		db := appCtx.GetMainDBConnection()
 		var pagingData common.Paging
 
 		if err := c.ShouldBind(&pagingData); err != nil {
@@ -24,10 +25,11 @@ func ListRestaurant(appCtx appctx.AppContext) gin.HandlerFunc {
 			panic(common.ErrInvalidRequest(err))
 		}
 
-		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
+		store := restaurantstorage.NewSQLStore(db)
 		biz := restaurantbiz.NewListRestaurantBiz(store)
 		pagingData.Fulfill()
-		filter.Status = []int{1}
+
+		filter.Status = 1
 
 		result, err := biz.ListRestaurant(c.Request.Context(), &filter, &pagingData)
 		if err != nil {
