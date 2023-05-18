@@ -3,10 +3,10 @@ package ginrestaurantlike
 import (
 	"LearnGo/common"
 	"LearnGo/component/appctx"
+	restaurantstorage "LearnGo/module/restaurant/storage"
 	restaurantlikebussiness "LearnGo/module/restaurantlike/bussiness"
 	restaurantlikemodel "LearnGo/module/restaurantlike/model"
 	restaurantlikestorage "LearnGo/module/restaurantlike/storage"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -27,15 +27,13 @@ func UserLikeRestaurant(ctx appctx.AppContext) gin.HandlerFunc {
 			UserId:       requester.GetUserId(),
 		}
 
-		fmt.Println(data)
-
 		if err := c.ShouldBind(&data); err != nil {
 			panic(err)
 		}
 
 		store := restaurantlikestorage.NewSQLStore(db)
-
-		biz := restaurantlikebussiness.NewUserLikeRestaurantBiz(store)
+		increaseLikeCountStore := restaurantstorage.NewSQLStore(ctx.GetMainDBConnection())
+		biz := restaurantlikebussiness.NewUserLikeRestaurantBiz(store, increaseLikeCountStore)
 
 		if err := biz.LikeRestaurant(c.Request.Context(), &data); err != nil {
 			panic(err)
