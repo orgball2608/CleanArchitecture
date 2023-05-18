@@ -1,7 +1,7 @@
 package restaurantlikebussiness
 
 import (
-	"LearnGo/common"
+	"LearnGo/component/asyncjob"
 	restaurantmodel "LearnGo/module/restaurant/model"
 	restaurantlikemodel "LearnGo/module/restaurantlike/model"
 	"context"
@@ -41,11 +41,20 @@ func (biz userLikeRestaurantBiz) LikeRestaurant(
 		return restaurantlikemodel.ErrCannotLikeRestaurant(err)
 	}
 
-	go func() {
-		defer common.AppRecover()
-		if err := biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId); err != nil {
-			log.Println(err)
-		}
-	}()
+	//go func() {
+	//	defer common.AppRecover()
+	//	if err := biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId); err != nil {
+	//		log.Println(err)
+	//	}
+	//}()
+
+	// new side effect
+	job := asyncjob.NewJob(func(ctx context.Context) error {
+		return biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
+	})
+
+	if err := asyncjob.NewGroup(true, job).Run(ctx); err != nil {
+		log.Println(err)
+	}
 	return nil
 }
