@@ -11,13 +11,8 @@ type UserDisLikeRestaurantStore interface {
 	Delete(context context.Context, userId, restaurantId int) error
 }
 
-//type DecreaseLikeCountStore interface {
-//	DecreaseLikeCount(context context.Context, id int) error
-//}
-
 type userDisLikeRestaurantBiz struct {
-	store UserDisLikeRestaurantStore
-	//decStore DecreaseLikeCountStore
+	store  UserDisLikeRestaurantStore
 	pubsub pubsub.Pubsub
 }
 
@@ -40,15 +35,5 @@ func (biz userDisLikeRestaurantBiz) DisLikeRestaurant(
 		RestaurantId: restaurantId,
 		UserId:       userId,
 	}))
-
-	//// new side effect
-	//job := asyncjob.NewJob(func(ctx context.Context) error {
-	//	return biz.decStore.DecreaseLikeCount(ctx, restaurantId)
-	//})
-	//
-	//if err := asyncjob.NewGroup(true, job).Run(ctx); err != nil {
-	//	log.Println(err)
-	//}
-
 	return nil
 }

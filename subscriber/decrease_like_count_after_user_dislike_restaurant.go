@@ -1,25 +1,20 @@
 package subscriber
 
 import (
-	"LearnGo/common"
 	"LearnGo/component/appctx"
 	restaurantstorage "LearnGo/module/restaurant/storage"
+	"LearnGo/pubsub"
 	"context"
-	"log"
 )
 
 func DecreaseLikeCountAfterUserLikeRestaurant(
-	appCtx appctx.AppContext, ctx context.Context) {
-	c, _ := appCtx.GetPubSub().Subscribe(ctx, common.TopicUserDisLikeRestaurant)
-	store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-
-	go func() {
-		defer common.AppRecover()
-		for {
-			msg := <-c
-			likeData := msg.Data().(HasRestaurantId)
-			log.Println("Decrease like count")
-			_ = store.DecreaseLikeCount(ctx, likeData.GetRestaurantId())
-		}
-	}()
+	appCtx appctx.AppContext) consumerJob {
+	return consumerJob{
+		Title: "Decrease like count after user like restaurant",
+		Hld: func(ctx context.Context, message *pubsub.Message) error {
+			store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
+			likeData := message.Data().(HasRestaurantId)
+			return store.DecreaseLikeCount(ctx, likeData.GetRestaurantId())
+		},
+	}
 }

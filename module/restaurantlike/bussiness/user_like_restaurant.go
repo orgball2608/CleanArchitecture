@@ -20,13 +20,8 @@ type IncreaseLikeCount interface {
 	) (*restaurantmodel.Restaurant, error)
 }
 
-//type IncreaseLikeCountStore interface {
-//	IncreaseLikeCount(ctx context.Context, id int) error
-//}
-
 type userLikeRestaurantBiz struct {
-	store UserLikeRestaurantStore
-	//incStore IncreaseLikeCountStore
+	store  UserLikeRestaurantStore
 	pubsub pubsub.Pubsub
 }
 
@@ -43,14 +38,5 @@ func (biz userLikeRestaurantBiz) LikeRestaurant(
 	}
 
 	biz.pubsub.Publish(ctx, common.TopicUserLikeRestaurant, pubsub.NewMessage(data))
-
-	//// new side effect
-	//job := asyncjob.NewJob(func(ctx context.Context) error {
-	//	return biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
-	//})
-	//
-	//if err := asyncjob.NewGroup(true, job).Run(ctx); err != nil {
-	//	log.Println(err)
-	//}
 	return nil
 }

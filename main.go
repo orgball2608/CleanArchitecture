@@ -8,6 +8,7 @@ import (
 	"LearnGo/route/admin"
 	"LearnGo/route/client"
 	"LearnGo/route/user"
+	"LearnGo/subscriber"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,6 +35,14 @@ func main() {
 	s3Provider := uploadprovider.NewS3Provider(s3BucketName, s3Region, s3APIKey, s3SecretKey, s3Domain)
 	pubsub := localPb.NewPubSub()
 	appContext := appctx.NewAppContext(db, s3Provider, secretKey, pubsub)
+
+	// use this line as an alternative for Setup
+	if err := subscriber.NewEngine(appContext).Start(); err != nil {
+		log.Fatalln()
+	}
+
+	////setup subscriber
+	//subscriber.Setup(appContext)
 
 	r := gin.Default()
 

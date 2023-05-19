@@ -1,9 +1,9 @@
 package subscriber
 
 import (
-	"LearnGo/common"
 	"LearnGo/component/appctx"
 	restaurantstorage "LearnGo/module/restaurant/storage"
+	"LearnGo/pubsub"
 	"context"
 	"log"
 )
@@ -14,33 +14,25 @@ type HasRestaurantId interface {
 }
 
 func IncreaseLikeCountAfterUserLikeRestaurant(
-	appCtx appctx.AppContext, ctx context.Context) {
-	c, _ := appCtx.GetPubSub().Subscribe(ctx, common.TopicUserLikeRestaurant)
-	store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-
-	log.Println("Increase like count")
-
-	go func() {
-		defer common.AppRecover()
-		for {
-			msg := <-c
-			likeData := msg.Data().(HasRestaurantId)
-			log.Println("Increase like count")
-			_ = store.IncreaseLikeCount(ctx, likeData.GetRestaurantId())
-		}
-	}()
+	appCtx appctx.AppContext) consumerJob {
+	return consumerJob{
+		Title: "Increase like count after user like restaurant",
+		Hld: func(ctx context.Context, message *pubsub.Message) error {
+			store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
+			likeData := message.Data().(HasRestaurantId)
+			return store.IncreaseLikeCount(ctx, likeData.GetRestaurantId())
+		},
+	}
 }
 
 func PushNotificationAfterUserLikeRestaurant(
-	appCtx appctx.AppContext, ctx context.Context) {
-	c, _ := appCtx.GetPubSub().Subscribe(ctx, common.TopicUserDisLikeRestaurant)
-
-	go func() {
-		defer common.AppRecover()
-		for {
-			msg := <-c
-			likeData := msg.Data().(HasRestaurantId)
+	appCtx appctx.AppContext) consumerJob {
+	return consumerJob{
+		Title: "Push Notification like count after user like restaurant",
+		Hld: func(ctx context.Context, message *pubsub.Message) error {
+			likeData := message.Data().(HasRestaurantId)
 			log.Println("Push Notification when user like restaurant", likeData)
-		}
-	}()
+			return nil
+		},
+	}
 }
