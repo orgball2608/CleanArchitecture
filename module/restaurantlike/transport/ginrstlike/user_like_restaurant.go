@@ -3,7 +3,6 @@ package ginrestaurantlike
 import (
 	"LearnGo/common"
 	"LearnGo/component/appctx"
-	restaurantstorage "LearnGo/module/restaurant/storage"
 	restaurantlikebussiness "LearnGo/module/restaurantlike/bussiness"
 	restaurantlikemodel "LearnGo/module/restaurantlike/model"
 	restaurantlikestorage "LearnGo/module/restaurantlike/storage"
@@ -32,8 +31,8 @@ func UserLikeRestaurant(ctx appctx.AppContext) gin.HandlerFunc {
 		}
 
 		store := restaurantlikestorage.NewSQLStore(db)
-		increaseLikeCountStore := restaurantstorage.NewSQLStore(ctx.GetMainDBConnection())
-		biz := restaurantlikebussiness.NewUserLikeRestaurantBiz(store, increaseLikeCountStore)
+		//increaseLikeCountStore := restaurantstorage.NewSQLStore(ctx.GetMainDBConnection())
+		biz := restaurantlikebussiness.NewUserLikeRestaurantBiz(store, ctx.GetPubSub())
 
 		if err := biz.LikeRestaurant(c.Request.Context(), &data); err != nil {
 			panic(err)

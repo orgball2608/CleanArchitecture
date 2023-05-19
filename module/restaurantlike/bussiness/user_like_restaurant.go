@@ -1,11 +1,11 @@
 package restaurantlikebussiness
 
 import (
-	"LearnGo/component/asyncjob"
+	"LearnGo/common"
 	restaurantmodel "LearnGo/module/restaurant/model"
 	restaurantlikemodel "LearnGo/module/restaurantlike/model"
+	"LearnGo/pubsub"
 	"context"
-	"log"
 )
 
 type UserLikeRestaurantStore interface {
@@ -20,18 +20,19 @@ type IncreaseLikeCount interface {
 	) (*restaurantmodel.Restaurant, error)
 }
 
-type IncreaseLikeCountStore interface {
-	IncreaseLikeCount(ctx context.Context, id int) error
-}
+//type IncreaseLikeCountStore interface {
+//	IncreaseLikeCount(ctx context.Context, id int) error
+//}
 
 type userLikeRestaurantBiz struct {
-	store    UserLikeRestaurantStore
-	incStore IncreaseLikeCountStore
+	store UserLikeRestaurantStore
+	//incStore IncreaseLikeCountStore
+	pubsub pubsub.Pubsub
 }
 
 func NewUserLikeRestaurantBiz(
-	store UserLikeRestaurantStore, incStore IncreaseLikeCountStore) *userLikeRestaurantBiz {
-	return &userLikeRestaurantBiz{store: store, incStore: incStore}
+	store UserLikeRestaurantStore, ps pubsub.Pubsub) *userLikeRestaurantBiz {
+	return &userLikeRestaurantBiz{store: store, pubsub: ps}
 }
 
 func (biz userLikeRestaurantBiz) LikeRestaurant(
@@ -41,20 +42,15 @@ func (biz userLikeRestaurantBiz) LikeRestaurant(
 		return restaurantlikemodel.ErrCannotLikeRestaurant(err)
 	}
 
-	//go func() {
-	//	defer common.AppRecover()
-	//	if err := biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId); err != nil {
-	//		log.Println(err)
-	//	}
-	//}()
+	biz.pubsub.Publish(ctx, common.TopicUserLikeRestaurant, pubsub.NewMessage(data))
 
-	// new side effect
-	job := asyncjob.NewJob(func(ctx context.Context) error {
-		return biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
-	})
-
-	if err := asyncjob.NewGroup(true, job).Run(ctx); err != nil {
-		log.Println(err)
-	}
+	//// new side effect
+	//job := asyncjob.NewJob(func(ctx context.Context) error {
+	//	return biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
+	//})
+	//
+	//if err := asyncjob.NewGroup(true, job).Run(ctx); err != nil {
+	//	log.Println(err)
+	//}
 	return nil
 }

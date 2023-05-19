@@ -3,7 +3,6 @@ package ginrestaurantlike
 import (
 	"LearnGo/common"
 	"LearnGo/component/appctx"
-	restaurantstorage "LearnGo/module/restaurant/storage"
 	restaurantlikebussiness "LearnGo/module/restaurantlike/bussiness"
 	restaurantlikestorage "LearnGo/module/restaurantlike/storage"
 	"github.com/gin-gonic/gin"
@@ -22,8 +21,8 @@ func UserDisLikeRestaurant(ctx appctx.AppContext) gin.HandlerFunc {
 		requester := c.MustGet(common.CurrentUser).(common.Requester)
 
 		store := restaurantlikestorage.NewSQLStore(db)
-		decStore := restaurantstorage.NewSQLStore(db)
-		biz := restaurantlikebussiness.NewUserDisLikeRestaurantBiz(store, decStore)
+		//decStore := restaurantstorage.NewSQLStore(db)
+		biz := restaurantlikebussiness.NewUserDisLikeRestaurantBiz(store, ctx.GetPubSub())
 
 		if err := biz.DisLikeRestaurant(c.Request.Context(), requester.GetUserId(), int(id.GetLocalID())); err != nil {
 			panic(err)

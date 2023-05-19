@@ -4,6 +4,7 @@ import (
 	"LearnGo/component/appctx"
 	"LearnGo/component/uploadprovider"
 	"LearnGo/middleware"
+	localPb "LearnGo/pubsub/localpub"
 	"LearnGo/route/admin"
 	"LearnGo/route/client"
 	"LearnGo/route/user"
@@ -28,10 +29,11 @@ func main() {
 		log.Fatal("Connect DB failed", err)
 	}
 	log.Println("Connect DB success", db)
+	db = db.Debug()
 
 	s3Provider := uploadprovider.NewS3Provider(s3BucketName, s3Region, s3APIKey, s3SecretKey, s3Domain)
-	appContext := appctx.NewAppContext(db, s3Provider, secretKey)
-	db = db.Debug()
+	pubsub := localPb.NewPubSub()
+	appContext := appctx.NewAppContext(db, s3Provider, secretKey, pubsub)
 
 	r := gin.Default()
 
